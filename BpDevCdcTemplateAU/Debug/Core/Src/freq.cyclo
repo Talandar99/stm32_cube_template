@@ -1,0 +1,8 @@
+../Core/Src/freq.c:7:6:MX_TIM4_Init_New	6
+../Core/Src/freq.c:84:6:HAL_TIM_IC_CaptureCallback	1
+../Core/Src/freq.c:103:6:TIM4_IRQHandler	1
+../Core/Src/freq.c:108:6:FREQ_Init	1
+../Core/Src/freq.c:121:6:FREQ_Start	1
+../Core/Src/freq.c:129:7:FREQ_GetFrequency	1
+../Core/Src/freq.c:134:7:FREQ_GetDuty	1
+../Core/Src/freq.c:140:6:FREQ_TIM_IC_CaptureCallback	6

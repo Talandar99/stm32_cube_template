@@ -1,0 +1,4 @@
+../Core/Src/freertos.c:283:6:vApplicationIdleHook	1
+../Core/Src/freertos.c:298:6:vApplicationTickHook	1
+../Core/Src/freertos.c:313:6:MX_FREERTOS_Init	1
+../Core/Src/freertos.c:406:6:TestTimerCallback	1

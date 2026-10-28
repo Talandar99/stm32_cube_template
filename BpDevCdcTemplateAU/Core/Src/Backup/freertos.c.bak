@@ -1,0 +1,348 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * File Name          : freertos.c
+  * Description        : Code for freertos applications
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+
+/* Includes ------------------------------------------------------------------*/
+#include "FreeRTOS.h"
+#include "task.h"
+#include "main.h"
+#include "cmsis_os.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+typedef StaticTask_t osStaticThreadDef_t;
+typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticTimer_t osStaticTimerDef_t;
+typedef StaticSemaphore_t osStaticSemaphoreDef_t;
+typedef StaticEventGroup_t osStaticEventGroupDef_t;
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN Variables */
+
+/* USER CODE END Variables */
+/* Definitions for TestTask */
+osThreadId_t TestTaskHandle;
+uint32_t TestTaskBuffer[ 1024 ];
+osStaticThreadDef_t TestTaskControlBlock;
+const osThreadAttr_t TestTask_attributes = {
+  .name = "TestTask",
+  .cb_mem = &TestTaskControlBlock,
+  .cb_size = sizeof(TestTaskControlBlock),
+  .stack_mem = &TestTaskBuffer[0],
+  .stack_size = sizeof(TestTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for LedTask */
+osThreadId_t LedTaskHandle;
+uint32_t LedTaskBuffer[ 1024 ];
+osStaticThreadDef_t LedTaskControlBlock;
+const osThreadAttr_t LedTask_attributes = {
+  .name = "LedTask",
+  .cb_mem = &LedTaskControlBlock,
+  .cb_size = sizeof(LedTaskControlBlock),
+  .stack_mem = &LedTaskBuffer[0],
+  .stack_size = sizeof(LedTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for PingTask */
+osThreadId_t PingTaskHandle;
+uint32_t PingTaskBuffer[ 1024 ];
+osStaticThreadDef_t PingTaskControlBlock;
+const osThreadAttr_t PingTask_attributes = {
+  .name = "PingTask",
+  .cb_mem = &PingTaskControlBlock,
+  .cb_size = sizeof(PingTaskControlBlock),
+  .stack_mem = &PingTaskBuffer[0],
+  .stack_size = sizeof(PingTaskBuffer),
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for PongTask */
+osThreadId_t PongTaskHandle;
+uint32_t PongTaskBuffer[ 1024 ];
+osStaticThreadDef_t PongTaskControlBlock;
+const osThreadAttr_t PongTask_attributes = {
+  .name = "PongTask",
+  .cb_mem = &PongTaskControlBlock,
+  .cb_size = sizeof(PongTaskControlBlock),
+  .stack_mem = &PongTaskBuffer[0],
+  .stack_size = sizeof(PongTaskBuffer),
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for PingQueue */
+osMessageQueueId_t PingQueueHandle;
+uint8_t PingQueueBuffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t PingQueueControlBlock;
+const osMessageQueueAttr_t PingQueue_attributes = {
+  .name = "PingQueue",
+  .cb_mem = &PingQueueControlBlock,
+  .cb_size = sizeof(PingQueueControlBlock),
+  .mq_mem = &PingQueueBuffer,
+  .mq_size = sizeof(PingQueueBuffer)
+};
+/* Definitions for PongQueue */
+osMessageQueueId_t PongQueueHandle;
+uint8_t PongQueueBuffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t PongQueueControlBlock;
+const osMessageQueueAttr_t PongQueue_attributes = {
+  .name = "PongQueue",
+  .cb_mem = &PongQueueControlBlock,
+  .cb_size = sizeof(PongQueueControlBlock),
+  .mq_mem = &PongQueueBuffer,
+  .mq_size = sizeof(PongQueueBuffer)
+};
+/* Definitions for TestTimer */
+osTimerId_t TestTimerHandle;
+osStaticTimerDef_t TestTimerControlBlock;
+const osTimerAttr_t TestTimer_attributes = {
+  .name = "TestTimer",
+  .cb_mem = &TestTimerControlBlock,
+  .cb_size = sizeof(TestTimerControlBlock),
+};
+/* Definitions for TestBinarySem */
+osSemaphoreId_t TestBinarySemHandle;
+osStaticSemaphoreDef_t TestBinarySemControlBlock;
+const osSemaphoreAttr_t TestBinarySem_attributes = {
+  .name = "TestBinarySem",
+  .cb_mem = &TestBinarySemControlBlock,
+  .cb_size = sizeof(TestBinarySemControlBlock),
+};
+/* Definitions for keyEvent */
+osEventFlagsId_t keyEventHandle;
+osStaticEventGroupDef_t keyEventControlBlock;
+const osEventFlagsAttr_t keyEvent_attributes = {
+  .name = "keyEvent",
+  .cb_mem = &keyEventControlBlock,
+  .cb_size = sizeof(keyEventControlBlock),
+};
+
+/* Private function prototypes -----------------------------------------------*/
+/* USER CODE BEGIN FunctionPrototypes */
+
+/* USER CODE END FunctionPrototypes */
+
+void StartTestTask(void *argument);
+void StartLedTask(void *argument);
+void StartPingTask(void *argument);
+void StartPongTask(void *argument);
+void TestTimerCallback(void *argument);
+
+extern void MX_USB_DEVICE_Init(void);
+void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
+
+/* Hook prototypes */
+void vApplicationIdleHook(void);
+void vApplicationTickHook(void);
+
+/* USER CODE BEGIN 2 */
+void vApplicationIdleHook( void )
+{
+   /* vApplicationIdleHook() will only be called if configUSE_IDLE_HOOK is set
+   to 1 in FreeRTOSConfig.h. It will be called on each iteration of the idle
+   task. It is essential that code added to this hook function never attempts
+   to block in any way (for example, call xQueueReceive() with a block time
+   specified, or call vTaskDelay()). If the application makes use of the
+   vTaskDelete() API function (as this demo application does) then it is also
+   important that vApplicationIdleHook() is permitted to return to its calling
+   function, because it is the responsibility of the idle task to clean up
+   memory allocated by the kernel to any task that has since been deleted. */
+}
+/* USER CODE END 2 */
+
+/* USER CODE BEGIN 3 */
+void vApplicationTickHook( void )
+{
+   /* This function will be called by each tick interrupt if
+   configUSE_TICK_HOOK is set to 1 in FreeRTOSConfig.h. User code can be
+   added here, but the tick hook is called from an interrupt context, so
+   code must not attempt to block, and only the interrupt safe FreeRTOS API
+   functions can be used (those that end in FromISR()). */
+}
+/* USER CODE END 3 */
+
+/**
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
+void MX_FREERTOS_Init(void) {
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of TestBinarySem */
+  TestBinarySemHandle = osSemaphoreNew(1, 1, &TestBinarySem_attributes);
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* Create the timer(s) */
+  /* creation of TestTimer */
+  TestTimerHandle = osTimerNew(TestTimerCallback, osTimerPeriodic, NULL, &TestTimer_attributes);
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of PingQueue */
+  PingQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &PingQueue_attributes);
+
+  /* creation of PongQueue */
+  PongQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &PongQueue_attributes);
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of TestTask */
+  TestTaskHandle = osThreadNew(StartTestTask, NULL, &TestTask_attributes);
+
+  /* creation of LedTask */
+  LedTaskHandle = osThreadNew(StartLedTask, NULL, &LedTask_attributes);
+
+  /* creation of PingTask */
+  PingTaskHandle = osThreadNew(StartPingTask, NULL, &PingTask_attributes);
+
+  /* creation of PongTask */
+  PongTaskHandle = osThreadNew(StartPongTask, NULL, &PongTask_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Create the event(s) */
+  /* creation of keyEvent */
+  keyEventHandle = osEventFlagsNew(&keyEvent_attributes);
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+}
+
+/* USER CODE BEGIN Header_StartTestTask */
+/**
+  * @brief  Function implementing the TestTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartTestTask */
+void StartTestTask(void *argument)
+{
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN StartTestTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTestTask */
+}
+
+/* USER CODE BEGIN Header_StartLedTask */
+/**
+* @brief Function implementing the LedTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartLedTask */
+void StartLedTask(void *argument)
+{
+  /* USER CODE BEGIN StartLedTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartLedTask */
+}
+
+/* USER CODE BEGIN Header_StartPingTask */
+/**
+* @brief Function implementing the PingTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartPingTask */
+void StartPingTask(void *argument)
+{
+  /* USER CODE BEGIN StartPingTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartPingTask */
+}
+
+/* USER CODE BEGIN Header_StartPongTask */
+/**
+* @brief Function implementing the PongTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartPongTask */
+void StartPongTask(void *argument)
+{
+  /* USER CODE BEGIN StartPongTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartPongTask */
+}
+
+/* TestTimerCallback function */
+void TestTimerCallback(void *argument)
+{
+  /* USER CODE BEGIN TestTimerCallback */
+
+  /* USER CODE END TestTimerCallback */
+}
+
+/* Private application code --------------------------------------------------*/
+/* USER CODE BEGIN Application */
+
+/* USER CODE END Application */
+

@@ -1,0 +1,4 @@
+../Core/Src/CliTask.c:53:6:CliTask_Is_Usb_Ready	1
+../Core/Src/CliTask.c:61:12:CliCmdVer	1
+../Core/Src/CliTask.c:75:12:CliCmdDbg	2
+../Core/Src/CliTask.c:115:6:CliTaskHandler	14

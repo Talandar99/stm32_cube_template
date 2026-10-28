@@ -1,0 +1,14 @@
+../Core/Src/log_msg.c:63:6:LogMsg_WaitUsbReady	3
+../Core/Src/log_msg.c:74:6:LogMsg_FifoInit	1
+../Core/Src/log_msg.c:82:5:LogMsg_FifoEnqueue	2
+../Core/Src/log_msg.c:95:5:LogMsg_FifoDequeue	2
+../Core/Src/log_msg.c:107:6:LogMsg_SendPendingMessages	3
+../Core/Src/log_msg.c:134:6:LogMsg_Message	4
+../Core/Src/log_msg.c:170:6:LogMsg_Hdr	1
+../Core/Src/log_msg.c:179:6:LogMsg_Cli	1
+../Core/Src/log_msg.c:188:6:LogMsg_Inf	1
+../Core/Src/log_msg.c:197:6:LogMsg_Wrn	1
+../Core/Src/log_msg.c:206:6:LogMsg_Err	1
+../Core/Src/log_msg.c:216:6:LogMsg_Dbg	1
+../Core/Src/log_msg.c:228:6:LogMsg_DbgSelect	1
+../Core/Src/log_msg.c:234:6:LogMsg_Init	1

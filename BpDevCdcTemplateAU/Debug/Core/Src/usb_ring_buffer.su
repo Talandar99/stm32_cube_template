@@ -1,0 +1,4 @@
+../Core/Src/usb_ring_buffer.c:10:6:RingBuffer_Init	16	static
+../Core/Src/usb_ring_buffer.c:17:6:RingBuffer_Put	24	static
+../Core/Src/usb_ring_buffer.c:31:6:RingBuffer_Get	16	static
+../Core/Src/usb_ring_buffer.c:42:6:RingBuffer_IsEmpty	16	static
